@@ -1,3 +1,4 @@
+// script.js
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('review-form');
     const reviewSlider = document.getElementById('review-slider');
@@ -15,7 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
         xhr.onload = function() {
             if (xhr.status === 200) {
-                addReviewToSlider(name, review);
+                // Clear the slider and reload reviews
+                reviewSlider.innerHTML = '';
+                loadReviews();
                 form.reset(); // Reset the form
             } else {
                 alert('Failed to submit review.');
@@ -24,32 +27,40 @@ document.addEventListener('DOMContentLoaded', function() {
         xhr.send(`name=${encodeURIComponent(name)}&review=${encodeURIComponent(review)}`);
     });
 
-    function addReviewToSlider(name, review) {
-        const reviewElement = document.createElement('div');
-        reviewElement.classList.add('review');
-        reviewElement.innerHTML = `<p><strong>${name}</strong></p><p>${review}</p>`;
-        reviewSlider.appendChild(reviewElement);
-
-        // Display the new review immediately
-        showReview(reviewElement);
+    function loadReviews() {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', 'fetch_reviews.php', true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                const reviews = JSON.parse(xhr.responseText);
+                reviews.forEach((reviewData, index) => {
+                    const reviewElement = document.createElement('div');
+                    reviewElement.classList.add('review');
+                    if (index === 0) {
+                        reviewElement.classList.add('active');
+                    }
+                    reviewElement.innerHTML = `<p><strong>${reviewData.name}</strong></p><p>${reviewData.review}</p>`;
+                    reviewSlider.appendChild(reviewElement);
+                });
+                // Start the slider
+                startSlider();
+            }
+        };
+        xhr.send();
     }
 
-    function showReview(reviewElement) {
-        const activeReview = reviewSlider.querySelector('.review.active');
-        if (activeReview) {
-            activeReview.classList.remove('active');
-        }
-        reviewElement.classList.add('active');
-    }
-
-    // Simulate slider functionality (simple approach, can be improved)
-    let currentReviewIndex = 0;
-    setInterval(() => {
+    function startSlider() {
+        let currentReviewIndex = 0;
         const reviews = reviewSlider.querySelectorAll('.review');
-        if (reviews.length > 0) {
-            reviews[currentReviewIndex].classList.remove('active');
-            currentReviewIndex = (currentReviewIndex + 1) % reviews.length;
-            reviews[currentReviewIndex].classList.add('active');
+        if (reviews.length > 1) {
+            setInterval(() => {
+                reviews[currentReviewIndex].classList.remove('active');
+                currentReviewIndex = (currentReviewIndex + 1) % reviews.length;
+                reviews[currentReviewIndex].classList.add('active');
+            }, 3000); // Change every 3 seconds
         }
-    }, 3000); // Change every 3 seconds
+    }
+
+    // Initial load of reviews
+    loadReviews();
 });
