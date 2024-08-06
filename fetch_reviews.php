@@ -1,6 +1,6 @@
 <?php
 // Path to the JSON file storing reviews
-$reviewsFile = 'reviews.json';
+$reviewsFile = '/reviews.json';
 
 // Initialize the reviews array
 $reviews = [];
